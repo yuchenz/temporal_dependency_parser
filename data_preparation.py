@@ -3,7 +3,7 @@ import copy
 from data_structures import Action, Node, State
 
 
-def make_one_training_data(doc):
+def make_one_training_data(doc, vocab):
     """ Given a document in a conll-similar format,
     produce a list of (state, action).
 
@@ -34,6 +34,12 @@ def make_one_training_data(doc):
             snt_list.append(line.strip())
         elif mode == 'EDGE_LIST':
             edge_list.append(line.strip().split())
+
+    # add to vocab
+    for snt in snt_list:
+        for word in snt:
+            if word not in vocab:
+                vocab[word] = vocab.get(word, 0) + 1 
 
     # initialize state (put root node in the stack, initialize buffer)
     init_buffer = []
@@ -105,7 +111,8 @@ def make_one_training_data(doc):
 
 def make_training_data(train_file):
     """ Given a file of multiple documents in conll-similar format,
-    produce a list of lists, each list is a list of (state, action) tuples.
+    produce a list of lists, each list is a list of (state, action) tuples;
+    and the vocabulary of this training data set.
     """
 
     data = codecs.open(train_file, 'r', 'utf-8').read()
@@ -113,8 +120,19 @@ def make_training_data(train_file):
 
     # a list of lists, each list is of (state, action) tuples
     training_data = []  
+    count_vocab = {}
 
     for doc in doc_list:
-        training_data.append(make_one_training_data(doc))
+        training_data.append(make_one_training_data(doc, count_vocab))
 
-    return training_data
+    # get the index_vocab from the count_vocab 
+    index = 3
+    vocab = {}
+    for word in count_vocab:
+        if count_vocab[word] > 2:   # cut off in frequent words
+            vocab[word] = index 
+            index += 1
+
+    vocab.update({'<START>':0, '<STOP>':1, '<UNK>':2})
+
+    return training_data, vocab
