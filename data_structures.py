@@ -2,10 +2,10 @@ import copy
 
 
 class Action:
-    SHIFT = 'shift' 
-    LEFT_REDUCE = 'left_reduce'
-    RIGHT_REDUCE = 'right_reduce'
-    ROOT_REDUCE = 'root_reduce'
+    SHIFT = 0
+    LEFT_REDUCE = 1
+    RIGHT_REDUCE = 2
+    ROOT_REDUCE = 3
 
 
 class Node:
