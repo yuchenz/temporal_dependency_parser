@@ -16,6 +16,7 @@ class Node:
         self.ID = '_'.join([snt_id, word_id_start, word_id_end])
         self.words = words
         self.parent = None
+        self.children = []
 
     def same_span(self, node):
         if node.snt_id == self.snt_id and \
@@ -41,10 +42,12 @@ class State:
 
     def left_reduce(self):
         self.stack[-1].parent = self.stack[-2]
+        self.stack[-2].children.append(self.stack[-1])
         self.stack.pop()
 
     def right_reduce(self):
         self.stack[-2].parent = self.stack[-1]
+        self.stack[-1].children.append(self.stack[-2])
         parent_node = self.stack[-1]
         self.stack.pop()
         self.stack.pop()
@@ -52,6 +55,7 @@ class State:
 
     def root_reduce(self):
         self.stack[-1].parent = self.stack[0]
+        self.stack[0].children.append(self.stack[-1])
         self.stack.pop()
 
     def __str__(self):
