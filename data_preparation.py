@@ -136,8 +136,6 @@ def make_training_data(train_file):
             vocab[word] = index 
             index += 1
 
-    import pdb; pdb.set_trace()
-
     vocab.update({'<START>':0, '<STOP>':1, '<UNK>':2})
 
     return training_data, vocab
