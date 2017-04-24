@@ -1,5 +1,4 @@
 import sys
-import codecs
 from data_preparation import make_training_data
 from ffNN_classifier import FFNN_Classifier
 

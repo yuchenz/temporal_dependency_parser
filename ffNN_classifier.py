@@ -1,5 +1,7 @@
 import dynet as dy
 import random
+import codecs
+import json
 
 
 class FFNN_Classifier:
@@ -8,13 +10,28 @@ class FFNN_Classifier:
     def __init__(self, embed_size, hidden_size, output_size, vocab):
         self.model = dy.Model()
 
-        self.embeddings = self.model.add_lookup_parameters((len(vocab), embed_size))
+        if embed_size != 0:
+            self.embeddings = self.model.add_lookup_parameters((len(vocab), embed_size))
 
-        self.pW1 = self.model.add_parameters((hidden_size, embed_size * 3))
-        self.pb = self.model.add_parameters(hidden_size)
-        self.pW2 = self.model.add_parameters((output_size, hidden_size))
+            self.pW1 = self.model.add_parameters((hidden_size, embed_size * 3))
+            self.pb = self.model.add_parameters(hidden_size)
+            self.pW2 = self.model.add_parameters((output_size, hidden_size))
 
-        self.vocab = vocab
+            self.vocab = vocab
+        else:
+            self.embeddings, self.pW1, self.pb, self.pW2, self.vocab = \
+                None, None, None, None, None
+
+    @classmethod
+    def load_model(cls, model_file, vocab_file):
+        classifier = cls(0, 0, 0, 0)
+        classifier.embeddings, classifier.pW1, classifier.pb, classifier.pW2 = \
+            classifier.model.load(model_file)
+
+        with codecs.open(vocab_file, 'r', 'utf-8') as f:
+            classifier.vocab = json.load(f) 
+
+        return classifier
 
 
     def train(self, training_data, output_file, num_iter=1000):
@@ -36,6 +53,8 @@ class FFNN_Classifier:
                     trainer.update()
         
         self.model.save(output_file, [self.embeddings, self.pW1, self.pb, self.pW2]) 
+        with codecs.open(output_file + '.vocab', 'w', 'utf-8') as f:
+            json.dump(self.vocab, f)
 
 
     def predict(self, state):

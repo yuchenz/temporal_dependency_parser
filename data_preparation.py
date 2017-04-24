@@ -14,10 +14,12 @@ def make_one_training_data(doc, vocab):
         snt2
         ...
         EDGE_LIST 
-        sntId_wordIdStart_wordIdEnd  sntId_wordIdStart_wordIdEnd  label
+        sntId_wordIdStart_wordIdEnd  annotation_label sntId_wordIdStart_wordIdEnd  link_label
         ...
     '''
-        In EDGE_LIST, field 1 is for child span, field 2 is for parent span.
+        In EDGE_LIST, field 1 is child span, field 2 label for child,
+        field 3 is parent span, field 4 is label for the link. 
+
         EDGE_LIST is sorted by field 1.
     """
 
@@ -45,14 +47,15 @@ def make_one_training_data(doc, vocab):
     init_buffer = []
     for edge in edge_list:
         snt_id, word_id_start, word_id_end = edge[0].split('_')
-        init_buffer.append(Node(snt_id, word_id_start, word_id_end, '_'.join(
-            snt_list[int(snt_id)].split()[
-                int(word_id_start):int(word_id_end) + 1])))
+        init_buffer.append(Node(snt_id, word_id_start, word_id_end, \
+            '_'.join(snt_list[int(snt_id)].split()[
+                int(word_id_start):int(word_id_end) + 1]), edge[1]))
 
     root_node = Node()
     state = State([root_node], init_buffer, snt_list)
 
-    # for each edge in the edge_list, add a parent to a node in the buffer 
+    # for each edge in the edge_list, add a parent to 
+    # the corresponding  node in the buffer 
     parent_count = {}
     for i, edge in enumerate(edge_list):
         snt_id, word_id_start, word_id_end = edge[0].split('_')
@@ -68,7 +71,7 @@ def make_one_training_data(doc, vocab):
             print("ERROR! node in edge_list doesn't match node in buffer")
         else:
             init_buffer[i].parent = parent
-            print("parent added for: ", child, "; parent is: ", parent)
+            #print("parent added for: ", child, "; parent is: ", parent)
             parent_count[parent.ID] = parent_count.get(parent.ID, 0) + 1
 
     # create (state, action) list
@@ -129,10 +132,78 @@ def make_training_data(train_file):
     index = 3
     vocab = {}
     for word in count_vocab:
-        if count_vocab[word] > 2:   # cut off in frequent words
+        if count_vocab[word] > 0:   # cut off in frequent words
             vocab[word] = index 
             index += 1
+
+    import pdb; pdb.set_trace()
 
     vocab.update({'<START>':0, '<STOP>':1, '<UNK>':2})
 
     return training_data, vocab
+
+
+def make_one_test_data(doc):
+    """ Given a document in a conll-similar format,
+    produce an initial state. 
+
+    type doc: string
+    param doc: '''
+        SNT_LIST 
+        snt1
+        snt2
+        ...
+        EDGE_LIST 
+        sntId_wordIdStart_wordIdEnd  label sntId_wordIdStart_wordIdEnd  label
+        ...
+    '''
+        In EDGE_LIST, field 1 is child span, field 2 label for child,
+        field 3 is parent span, field 4 is label for the link. 
+        Field 3 and field 4 are not used since this is test data.
+
+        EDGE_LIST is sorted by field 1.
+    """
+
+    doc = doc.strip().split('\n')
+
+    # create snt_list, edge_list
+    snt_list = []
+    edge_list = []
+    mode = None
+    for line in doc:
+        if line.endswith('LIST'):
+            mode = line.strip()
+        elif mode == 'SNT_LIST':
+            snt_list.append(line.strip())
+        elif mode == 'EDGE_LIST':
+            edge_list.append(line.strip().split())
+
+    # initialize state (put root node in the stack, initialize buffer)
+    init_buffer = []
+    for edge in edge_list:
+        snt_id, word_id_start, word_id_end = edge[0].split('_')
+        init_buffer.append(Node(snt_id, word_id_start, word_id_end, \
+            '_'.join(snt_list[int(snt_id)].split()[
+                int(word_id_start):int(word_id_end) + 1]), edge[1]))
+
+    root_node = Node()
+    state0 = State([root_node], init_buffer, snt_list)
+
+    return state0
+
+
+def make_test_data(test_file):
+    """ Given a file of multiple documents in conll-similar format,
+    produce a list of states, each state is the initial state of 
+    stack, buffer, and the snt_list for each document.
+    """
+
+    data = codecs.open(test_file, 'r', 'utf-8').read()
+    doc_list = data.strip().split('\n\n')
+
+    test_data = []
+
+    for doc in doc_list:
+        test_data.append(make_one_test_data(doc))
+
+    return test_data

@@ -9,12 +9,14 @@ class Action:
 
 
 class Node:
-    def __init__(self, snt_id='-1', word_id_start='-1', word_id_end='-1', words='root'):
+    def __init__(self, snt_id='-1', word_id_start='-1', word_id_end='-1',
+            words='root', label='ROOT'):
         self.snt_id = snt_id
         self.word_id_start = word_id_start
         self.word_id_end = word_id_end
         self.ID = '_'.join([snt_id, word_id_start, word_id_end])
         self.words = words
+        self.label = label
         self.parent = None
         self.children = []
 
