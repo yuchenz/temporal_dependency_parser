@@ -132,7 +132,7 @@ def make_training_data(train_file):
     index = 3
     vocab = {}
     for word in count_vocab:
-        if count_vocab[word] > 0:   # cut off in frequent words
+        if count_vocab[word] > 0:   # cut off infrequent words
             vocab[word] = index 
             index += 1
 

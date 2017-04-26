@@ -2,6 +2,7 @@ import dynet as dy
 import random
 import codecs
 import json
+import operator
 
 
 class FFNN_Classifier:
@@ -44,7 +45,7 @@ class FFNN_Classifier:
                 for state, action in example:
                     dy.renew_cg()
 
-                    yhat = self.predict(state)
+                    yhat = self.scores(state)
 
                     loss = self.compute_loss(yhat, action)
 
@@ -57,7 +58,7 @@ class FFNN_Classifier:
             json.dump(self.vocab, f)
 
 
-    def predict(self, state):
+    def scores(self, state):
         x = self.extract_feature_vec(state)
 
         W1 = dy.parameter(self.pW1)
@@ -68,6 +69,10 @@ class FFNN_Classifier:
         yhat = W2 * hidden
 
         return yhat
+
+    def predict(self, state):
+        return max(enumerate(self.scores(state).npvalue()),
+            key=operator.itemgetter(1))[0]
 
 
     def compute_loss(self, yhat, action):

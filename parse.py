@@ -20,8 +20,7 @@ def decode(test_data, classifier, output_file):
     for state in test_data:
         edge_list = []
         while state.buffer_ or len(state.stack) > 1:
-            action, value = max(enumerate(classifier.predict(state).npvalue()),
-                key=operator.itemgetter(1))
+            action = classifier.predict(state)
 
             if action == Action.SHIFT:
                 state.shift()
@@ -47,8 +46,8 @@ def decode(test_data, classifier, output_file):
 
                 state.root_reduce()
 
-            print(action, end=' ')
-        print()
+            #print(action, end=' ')
+        #print()
 
         edge_list = sorted(edge_list,
             key = lambda x: tuple([int(i) for i in x.split()[0].split('_')]))
