@@ -4,6 +4,7 @@ import operator
 import codecs
 from data_preparation import make_test_data
 from ffNN_classifier import FFNN_Classifier
+from perceptron_classifier import Perceptron_Classifier
 from data_structures import Action
 
 
@@ -46,6 +47,9 @@ def decode(test_data, classifier, output_file):
 
                 state.root_reduce()
 
+            print(action, end=' ')
+        print()
+
         edge_list = sorted(edge_list,
             key = lambda x: tuple([int(i) for i in x.split()[0].split('_')]))
 
@@ -59,9 +63,14 @@ if __name__ == '__main__':
 
     test_data = make_test_data(test_file)
 
-    classifier = FFNN_Classifier.load_model(model_file, vocab_file)
+    clas = sys.argv[4]
 
-    parsed_file = test_file + '.parsed'
+    if clas == 'ffnn':
+        classifier = FFNN_Classifier.load_model(model_file, vocab_file)
+    elif clas == 'perceptron':
+        classifier = Perceptron_Classifier.load_model(model_file, vocab_file)
+
+    parsed_file = test_file + '.' + model_file + '.parsed'
 
     try:
         os.remove(parsed_file)
